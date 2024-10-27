@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем весь проект в контейнер
 COPY . /api/
 
+EXPOSE 8000
 # Запускаем миграции и собираем статические файлы
 RUN python manage.py migrate && \
 python manage.py collectstatic --noinput
