@@ -25,8 +25,11 @@ SECRET_KEY = 'django-insecure-_nf$t10y)!(h%77!zrfm)*lcdz1iwz7xt)^u=g=vzgsuum$n-0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['mm-shkurin-abs-api-3258.twc1.net','127.0.0.1', '195.133.30.145', '195.133.30.145:8000',"http://localhost:3000","https://mm-shkurin-abs-front-d93d.twc1.net"]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://mm-shkurin-abs-front-d93d.twc1.net",
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -101,7 +104,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 CSRF_TRUSTED_ORIGINS = ['https://mm-shkurin-abs-api-3258.twc1.net']
 
