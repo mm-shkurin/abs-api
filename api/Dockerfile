@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /api/
 
 EXPOSE 8000
+# Запускаем миграции и собираем статические файлы
+RUN python manage.py migrate && \
+python manage.py collectstatic --noinput
 
 # Указываем команду для запуска приложения
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "setting.wsgi:application"]
