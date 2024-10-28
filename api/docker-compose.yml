@@ -8,9 +8,12 @@ services:
     depends_on:
       - db
     environment:
-      - DJANGO_SETTINGS_MODULE=setting.settings # Измените на ваш правильный модуль настроек
+      - DJANGO_SETTINGS_MODULE=setting.settings
       - DATABASE_URL=postgres://user:password@db:5432/mydatabase
-    command: gunicorn setting.wsgi --bind 0.0.0.0:8000 # Убедитесь, что используется правильный синтаксис
+    command: gunicorn setting.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./media:/api/media  # Подключаем папку media
+      - ./staticfiles:/api/staticfiles  # Подключаем папку staticfiles
 
   db:
     image: postgres:latest
@@ -24,9 +27,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf # Подключаем конфигурацию Nginx
-      - ./staticfiles:/api/staticfiles/ # Хранение статических файлов
-      - media_volume:/api/media/ # Хранение медиа файлов
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Подключаем конфигурацию Nginx
+      - ./media:/api/media  # Подключаем media
+      - ./staticfiles:/api/staticfiles  # Подключаем staticfiles
     depends_on:
       - web
 
