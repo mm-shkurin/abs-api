@@ -25,10 +25,10 @@ SECRET_KEY = 'django-insecure-_nf$t10y)!(h%77!zrfm)*lcdz1iwz7xt)^u=g=vzgsuum$n-0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['mm-shkurin-abs-api-3258.twc1.net','127.0.0.1', '195.133.30.145', '195.133.30.145:8000',"http://localhost:3000","https://mm-shkurin-abs-front-d93d.twc1.net"]
+ALLOWED_HOSTS = ["https://absoluteomsk.ru",'mm-shkurin-abs-api-3258.twc1.net','127.0.0.1', '195.133.30.145', '195.133.30.145:8000',"http://localhost:3000","https://mm-shkurin-abs-front-d93d.twc1.net"]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://mm-shkurin-abs-front-d93d.twc1.net",
+    "https://absoluteomsk.ru",
 ]
 # Application definition
 
