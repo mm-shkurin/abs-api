@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from rest_framework import filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny,IsAuthenticatedOrReadOnly
 from rest_framework import status, generics
@@ -15,17 +16,22 @@ class AutoAPIList(generics.ListCreateAPIView):
     Список автомобилей доступен всем (GET),
     создание записи (POST) только для авторизованных пользователей.
     """
-    queryset = Auto.objects.all()
     serializer_class = AutoSerializer
-    parser_classes = (MultiPartParser, FormParser)  # Поддержка multipart-запросов
-    
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_queryset(self):
+        queryset = Auto.objects.all()
+        category_id = self.request.query_params.get('categories')
+        if category_id:
+            queryset = queryset.filter(categories__id=category_id)
+        return queryset
+
     def get_permissions(self):
         if self.request.method == 'GET':
             return [AllowAny()]  # GET доступен всем
         if self.request.method == 'POST':
             return [IsAuthenticated()]  # POST доступен только авторизованным
         return super().get_permissions()
-
 
 class RegisterView(APIView):
     """
