@@ -15,12 +15,12 @@ SECRET_KEY = 'django-insecure-_nf$t10y)!(h%77!zrfm)*lcdz1iwz7xt)^u=g=vzgsuum$n-0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://absoluteomsk.ru",'mm-shkurin-abs-api-3258.twc1.net','127.0.0.1', '195.133.30.145', '195.133.30.145:8000',"http://localhost:3000","https://mm-shkurin-abs-front-d93d.twc1.net","localhost","*"]
+ALLOWED_HOSTS = ["https://absoluteomsk.ru",'mm-shkurin-abs-api-3258.twc1.net','127.0.0.1', '195.133.30.145', '195.133.30.145:8000',"http://localhost:3000","https://mm-shkurin-abs-front-9a07.twc1.net","localhost","*"]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Разрешить запросы с этого домена
     "http://127.0.0.1:8000",  # Разрешить запросы с этого домена (если фронтенд и бэкенд на одном сервере)
-
+    "https://mm-shkurin-abs-front-9a07.twc1.net",
     "https://absoluteomsk.ru",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
