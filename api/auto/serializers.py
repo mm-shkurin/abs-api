@@ -1,62 +1,91 @@
 from rest_framework import serializers
-from .models import Auto, Category, Image
-from django.core.files import File
-from tempfile import NamedTemporaryFile
-from urllib.request import urlopen
+from .models import Auto, Image, Category
+from django.contrib.auth.models import User
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ("id", "name")
+        fields = ('id', 'name')
 
-class ImageFieldFromURL(serializers.ImageField):
-    def to_internal_value(self, data):
-# Проверяем, если data - это URL
-        if data.startswith("http") or data.startswith("https"):
-# Открываем URL и читаем его содержимое
-            response = urlopen(data)
-            img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(response.read())
-            img_temp.flush()
-# Создаем объект File из временного файла
-            img = File(img_temp)
-            return img
-        return super().to_internal_value(data)
 
 class ImageSerializer(serializers.ModelSerializer):
-    img = ImageFieldFromURL()
-
     class Meta:
         model = Image
-        fields = ("id", "name", "img")
+        fields = ['id', 'name', 'img']
+
 
 class AutoSerializer(serializers.ModelSerializer):
-    categories = CategorySerializer(many=True, read_only=True) # Указана связь с категориями
-    img = ImageFieldFromURL()
+    images = ImageSerializer(many=True, read_only=True)  # Отображение связанных изображений
+    categories = serializers.PrimaryKeyRelatedField(
+    many=True,
+    queryset=Category.objects.all()
+)  # Сериализация категорий по их названию
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False
+    )  # Для загрузки новых изображений
 
     class Meta:
         model = Auto
-        fields = ['id', 'title', 'content', 'time_create', 'time_update', 'public', 'categories', 'img','img1','img2','img3','img4', 'price', 'owners', 'gearbox','mileage','engine','power','year']
+        fields = [
+            'id', 'title', 'content', 'time_create', 'time_update', 'public',
+            'categories', 'images', 'uploaded_images', 'price', 'owners', 'mileage',
+            'engine', 'power', 'year', 'gearbox', 'user'
+        ]
 
     def create(self, validated_data):
-        return Auto.objects.create(**validated_data)
+        uploaded_images = validated_data.pop('uploaded_images', [])
+        categories = validated_data.pop('categories', [])
+        
+        # Создание объекта авто
+        auto = Auto.objects.create(**validated_data)
+
+        # Привязка категорий
+        if categories:
+            auto.categories.set(categories)
+
+        # Привязка новых изображений
+        for image_file in uploaded_images:
+            image_instance = Image.objects.create(img=image_file, name=image_file.name)
+            auto.images.add(image_instance)
+
+        return auto
 
     def update(self, instance, validated_data):
-        instance.title = validated_data.get('title', instance.title)
-        instance.content = validated_data.get('content', instance.content)
-        instance.time_update = validated_data.get('time_update', instance.time_update)
-        instance.public = validated_data.get('public', instance.public)
-        instance.img = validated_data.get('img', instance.img)
-        instance.img1 = validated_data.get('img1', instance.img1)
-        instance.img2 = validated_data.get('img2', instance.img2)
-        instance.img3 = validated_data.get('img3', instance.img3)
-        instance.img4 = validated_data.get('img4', instance.img4)
-        instance.price = validated_data.get('price', instance.price)
-        instance.owners = validated_data.get('owners', instance.owners)
-        instance.mileage = validated_data.get('mileage', instance.mileage)
-        instance.engine = validated_data.get('engine', instance.engine)
-        instance.power = validated_data.get('power', instance.power)
-        instance.year = validated_data.get('year', instance.year)
-        instance.gearbox = validated_data.get('year', instance.gearbox)
+        uploaded_images = validated_data.pop('uploaded_images', None)
+        categories = validated_data.pop('categories', None)
+
+        # Обновление категорий
+        if categories is not None:
+            instance.categories.set(categories)
+
+        # Обновление изображений
+        if uploaded_images:
+            for image_file in uploaded_images:
+                image_instance = Image.objects.create(img=image_file, name=image_file.name)
+                instance.images.add(image_instance)
+
+        # Обновление остальных полей
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
         instance.save()
         return instance
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        user.is_active = True
+        user.save()
+        return user

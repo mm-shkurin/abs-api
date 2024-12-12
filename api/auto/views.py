@@ -1,32 +1,67 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Auto
-from .serializers import AutoSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny,IsAuthenticatedOrReadOnly
+from rest_framework import status, generics
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Auto,Image,Category
+from .serializers import AutoSerializer, RegisterSerializer,CategorySerializer
+from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+class CategoryViews(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (AllowAny,)
+class AutoAPIList(generics.ListCreateAPIView):
+    """
+    Список автомобилей доступен всем (GET),
+    создание записи (POST) только для авторизованных пользователей.
+    """
+    queryset = Auto.objects.all()
+    serializer_class = AutoSerializer
+    parser_classes = (MultiPartParser, FormParser)  # Поддержка multipart-запросов
+    
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]  # GET доступен всем
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]  # POST доступен только авторизованным
+        return super().get_permissions()
 
-class AutoListView(APIView):
-    def get(self, request, *args, **kwargs):
-        category_id = request.query_params.get('category', None)
-        if category_id:
-            autos = Auto.objects.filter(categories__id=category_id) # Исправлено categories__id
-        else:
-            autos = Auto.objects.all()
 
-        sort_by_category = request.query_params.get('ordering', None)
-        if sort_by_category == 'category':
-            autos = autos.order_by('categories__name') # Исправлено categories__name
-        elif sort_by_category == '-category':
-            autos = autos.order_by('-categories__name') # Исправлено categories__name
+class RegisterView(APIView):
+    """
+    Класс для регистрации нового пользователя
+    """
+    permission_classes = [AllowAny]  # Разрешаем доступ всем пользователям
 
-        serializer = AutoSerializer(autos, many=True)
-        return Response({'posts': serializer.data})
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'User registered successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class AutoAPIDestroy(generics.RetrieveDestroyAPIView):
+    queryset = Auto.objects.all()
+    serializer_class = AutoSerializer
+    permission_classes = (IsAdminOrReadOnly,)
 class AutoDetailView(APIView):
+    """
+    Представление для отображения деталей автомобиля (GET).
+    Доступно всем пользователям.
+    """
+    permission_classes = [AllowAny]  # Разрешаем доступ всем пользователям
+
     def get(self, request, pk, *args, **kwargs):
         try:
-            auto = Auto.objects.get(pk=pk)
+            auto = Auto.objects.get(pk=pk)  # Поиск объекта по первичному ключу
         except Auto.DoesNotExist:
             return Response({"error": "Object not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = AutoSerializer(auto)
-        return Response({'post': serializer.data})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+class AutoAPIUpdate(generics.RetrieveUpdateAPIView):
+    queryset = Auto.objects.all()
+    serializer_class = AutoSerializer
+    permission_classes = (IsOwnerOrReadOnly,)
