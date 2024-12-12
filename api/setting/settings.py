@@ -117,6 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
 CSRF_TRUSTED_ORIGINS = [
 'https://mm-shkurin-abs-api-712a.twc1.net',
 'http://localhost:8000',
+'https://mm-shkurin-abs-front-9a07.twc1.net/',
 ]
 
 # Internationalization
